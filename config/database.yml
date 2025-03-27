@@ -1,0 +1,18 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+development:
+  <<: *default
+  database: rehappening_development
+
+test:
+  <<: *default
+  database: rehappening_test
+
+production:
+  <<: *default
+  database: rehappening_production
+  username: rehappening
+  password:
