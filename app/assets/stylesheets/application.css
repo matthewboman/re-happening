@@ -13,3 +13,112 @@
  *= require_tree .
  *= require_self
  */
+ @import "tailwindcss";
+ @tailwind base;
+ @tailwind components;
+ @tailwind utilities;
+
+
+ .aspect-16-9 {
+   aspect-ratio: 16/9;
+ }
+
+ .gradient {
+   box-shadow: 0 0 20px 20px rgba(#000000, 0.4);
+ }
+
+ .navbar {
+   background-color: rgba(235, 250, 241, 0.6);
+ }
+
+ /* Colors */
+ .teal {
+   color: #54e8c5;
+ }
+ .background-teal {
+   background-color: #54e8c5;
+ }
+ .teal-orange {
+   border: 1px solid #54e8c5;
+ }
+ .teal-select {
+   appearance: none;
+   background-color: #0a0a0a;
+   color: #54e8c5;
+   border: 1px solid #54e8c5;
+   cursor: pointer;
+   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M7 8L0.937823 0.937823L1.47957 0.39608L7 5.91651L12.5204 0.39608L13.0622 0.937823L7 8Z' fill='%2354e8c5'/%3E%3C/svg%3E");
+   background-repeat: no-repeat;
+   background-position: right 0.5rem center;
+   background-size: 0.75rem;
+ }
+
+ /* Input overrides */
+ input[type="checkbox"] {
+   appearance: none; /* Removes default styles */
+   width: 20px;
+   height: 20px;
+   border-radius: 4px;
+   background-color: #0a0a0a; /* Black box */
+   cursor: pointer;
+ }
+
+ input[type="checkbox"]:checked {
+   background-color: #0a0a0a; /* Ensure black background when checked */
+ }
+
+ input[type="checkbox"]:checked::after {
+   content: '';
+   display: block;
+   width: 12px;
+   height: 12px;
+   margin: 3px;
+   top: 3px;
+   left: 3px;
+   background-color: #54e8c5; /* teal check */
+   clip-path: polygon(14% 44%, 40% 67%, 85% 20%, 100% 35%, 40% 88%, 0% 54%);
+ }
+
+ input[type="range"] {
+   -webkit-appearance: none;
+   appearance: none;
+   background: #54e8c5;  /* teal bar */
+   border: 1px solid #54e8c5;  /* teal outline */
+   height: 2px;
+ }
+
+ input[type="range"]::-webkit-slider-thumb {
+   -webkit-appearance: none;
+   appearance: none;
+   width: 16px;  /* Ensure visibility */
+   height: 16px;
+   background: black;  /* Black circle */
+   border-radius: 50%;  /* Circle shape */
+   border: 1px solid #54e8c5;  /* teal outline */
+   cursor: pointer;
+ }
+
+ input[type="range"]::-moz-range-thumb {
+   background: black;  /* Black circle */
+   border-radius: 50%;  /* Circle shape */
+   border: 1px solid #54e8c5;  /* teal outline */
+   cursor: pointer;
+ }
+
+ .waveform::-webkit-scrollbar {
+   height: 6px;
+ }
+
+ .waveform::-webkit-scrollbar-track {
+   background: black;
+ }
+
+ .waveform::-webkit-scrollbar-thumb {
+   background-color: #54e8c5;
+   border-radius: 3px;
+ }
+
+ .waveform {
+   scrollbar-width: thin;
+   scrollbar-color: #54e8c5 black;
+ }

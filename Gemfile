@@ -41,4 +41,9 @@ group :test do
   gem "selenium-webdriver"
 end
 
+gem "rack-cors"
 gem "vite_rails", "~> 3.0"
+
+gem "tailwindcss-ruby", "~> 4.0"
+
+gem "tailwindcss-rails", "~> 4.2"
