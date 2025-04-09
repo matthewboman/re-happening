@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
-import axios from 'axios'
+import axios        from 'axios'
 import Oscilliscope from './oscilliscope'
+import Waveform     from './waveform'
 
 const NewTrack = ({ addTrack }) => {
   const [ audioURL, setAudioURL ]       = useState<string | null>(null)
@@ -19,6 +20,7 @@ const NewTrack = ({ addTrack }) => {
   const audioChunksRef   = useRef<Blob[]>([])
   const audioRef         = useRef<HTMLAudioElement | null>(null)
   const streamRef        = useRef(null)
+  const waveformRef      = useRef({})
 
   // Update form elements
   const handleChange = (e) => {
@@ -47,9 +49,11 @@ const NewTrack = ({ addTrack }) => {
 
     if (isPlaying) {
       audioRef.current?.pause()
+      waveformRef.current?.pause?.()
       setIsPlaying(false)
     } else {
       setIsPlaying(true)
+      waveformRef.current?.play?.()
       audioRef.current?.play()
     }
   }
@@ -109,8 +113,16 @@ const NewTrack = ({ addTrack }) => {
   return (
     <div className="flex flex-col mb-4">
       {!showForm && (
-        <div className="flex flex-col items-center space-y-4">
-          <Oscilliscope stream={streamRef.current}/>
+        <div className="flex flex-col items-center space-y-4 border-b border-white pb-4 mb-4">
+          <div className='min-h-40 flex items-center justify-center'>
+            {isRecording && (<Oscilliscope stream={streamRef.current}/>)}
+            {(!isRecording && audioURL) && (<Waveform audioURL={audioURL} waveformCtrl={ctrl => { waveformRef.current = ctrl }} />)}
+            {(!isRecording && !audioURL) && (
+              <div className='text-white'>
+                Waiting to record...
+              </div>
+            )}
+          </div>
           <div className="flex space-x-4">
             <button
               onClick={handleRecord}

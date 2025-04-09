@@ -4,7 +4,7 @@ import axios        from 'axios'
 import Clippy       from '../components/clippy'
 import Instructions from '../components/instructions'
 import NewTrack     from '../components/new_track'
-import Waveform     from '../components/track'
+import Track        from '../components/track'
 
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
@@ -20,7 +20,7 @@ const ResponsiveGridLayout = WidthProvider(Responsive)
 
 const DEFAULT_ENVELOPE = [
   { time: 0, volume: 0.9 },
-  { time: 2, volume: 0.5 }
+  { time: 1, volume: 0.5 }
 ]
 const DEFAULT_PAN   = 0
 const DEFAULT_SPEED = 1
@@ -34,7 +34,9 @@ const HEADERS = { headers: {
 }}
 
 export default function Infinity() {
-  const [ tracks, setTracks ] = useState([])
+  const [ playing, setPlaying ] = useState(false)
+  const [ showNew, setShowNew ] = useState(false)
+  const [ tracks, setTracks ]   = useState([])
 
   useEffect(() => {
     axios.get('/api/get-all-tracks', HEADERS)
@@ -43,13 +45,18 @@ export default function Infinity() {
       })
   }, [])
 
-  // Add track to top of the list
+  // Add track to top of the list.
   const addTrack = (track) => {
-    // setTracks([ track, ...tracks ])
-    // updatePositions(tracks)
+    setTracks([ track, ...tracks ])
+    updatePositions(tracks)
   }
 
-  // Update the position of tracks
+  // Plays all tracks selected as playing.
+  const playAllActive = () => {
+    setPlaying(!playing)
+  }
+
+  // Update the position of tracks.
   const updatePositions = (arr) => {
     const positions = arr.map(a => ({ id: a.i, position: a.y }))
     axios.post('/api/update-track-order', { positions: positions })
@@ -59,7 +66,19 @@ export default function Infinity() {
   return (
     <div>
       <div className='p-4 md:p-[4rem] bg-black'>
-        <NewTrack addTrack={addTrack}/>
+        {showNew && (
+          <div className='mb-4 min-h-40'>
+            <NewTrack addTrack={addTrack}/>
+          </div>
+        )}
+        <div className='mb-4 flex space-x-4'>
+          <button onClick={() => setShowNew(!showNew)} className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm disabled:opacity-50">
+            { showNew ? 'Hide' : 'Add your track' }
+          </button>
+          <button onClick={playAllActive} className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm disabled:opacity-50">
+            { playing ? 'Pause' : 'Play' } composition
+          </button>
+        </div>
         <div className='mt-4'>
           <ResponsiveGridLayout
             layout = { {lg: tracks } }
@@ -81,7 +100,7 @@ export default function Infinity() {
                 <div key={t.id} className='flex'>
                   <div className='drag-handle border-4 border-gray-300 cursor-pointer my-6'></div>
                   <div className="pl-4 flex-1">
-                    <Waveform
+                    <Track
                       id            = { t.id }
                       key           = { t.title }
                       audioFile     = { t.url }
@@ -89,6 +108,7 @@ export default function Infinity() {
                       isPlayingProp = { t.is_playing || false }
                       panProp       = { t.pan || DEFAULT_PAN }
                       pitchProp     = { t.preserve_pitch }
+                      play          = { playing }
                       speedProp     = { t.speed || DEFAULT_SPEED }
                       startProp     = { t.start || DEFAULT_START }
                       stopProp      = { t.stop || DEFAULT_STOP }

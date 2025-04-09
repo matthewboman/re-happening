@@ -1,10 +1,10 @@
 import React, { FC, useEffect, useRef, useState } from 'react'
-import axios from 'axios'
-import { Knob }            from 'primereact/knob'
-import WaveSurfer          from 'wavesurfer.js'
+import axios             from 'axios'
+import { Knob }          from 'primereact/knob'
+import WaveSurfer        from 'wavesurfer.js'
 import EnvelopePlugin,
-       { EnvelopePoint }   from 'wavesurfer.js/dist/plugins/envelope.esm.js'
-import RegionsPlugin       from "wavesurfer.js/dist/plugins/regions.esm.js"
+       { EnvelopePoint } from 'wavesurfer.js/dist/plugins/envelope.esm.js'
+import RegionsPlugin     from "wavesurfer.js/dist/plugins/regions.esm.js"
 
 interface Props {
   id:            number,
@@ -13,19 +13,21 @@ interface Props {
   isPlayingProp: boolean,
   panProp:       number,
   pitchProp:     boolean,
+  play:          boolean,
   speedProp:     number,
   startProp:     number,
   stopProp:      number,
   zoomProp:      number,
 }
 
-const Waveform: FC<Props> = ({
+const Track: FC<Props> = ({
   id,
   audioFile,
   envProp,
   isPlayingProp,
   panProp,
   pitchProp,
+  play,
   speedProp,
   startProp,
   stopProp,
@@ -37,7 +39,8 @@ const Waveform: FC<Props> = ({
   let audioContext  = useRef<any>(null)
   let panNode       = useRef<any>(null)
 
-  const [ isPlaying, setIsPlaying ]           = useState(false) // TODO: set to true when parent clicks
+  const [ isPlaying, setIsPlaying ]           = useState(false) // Current playback state
+  const [ isUsed, setIsUsed ]                 = useState(false) // Saves in DB whether selected to play
   const [ env, setEnv ]                       = useState(envProp)
   const [ pan, setPan ]                       = useState(panProp)
   const [ preservePitch, setPreservePitch ]   = useState(pitchProp)
@@ -59,6 +62,21 @@ const Waveform: FC<Props> = ({
       dragPointStroke: '#548fe8',
       points:          envProp,
     })
+
+  // Playback from parent
+  useEffect(() => {
+    setIsUsed(isPlayingProp)
+
+    if (play == true && isPlayingProp == true) {
+      setIsPlaying(true)
+      wavesurfer.current?.playPause()
+    }
+    if (play == false) {
+      setIsPlaying(false)
+      wavesurfer.current?.playPause()
+
+    }
+  }, [play])
 
   // Waveform rendering
   useEffect(() => {
@@ -165,6 +183,7 @@ const Waveform: FC<Props> = ({
   // Toggles play/pause
   const playPause = () => {
     setIsPlaying(!isPlaying)
+    setIsUsed(!isUsed)
     wavesurfer.current?.playPause()
   }
 
@@ -172,7 +191,7 @@ const Waveform: FC<Props> = ({
   const saveLoop = () => {
     const state = {
       envelope:       env,
-      is_playing:     isPlaying,
+      is_playing:     isUsed,
       pan:            pan,
       preserve_pitch: preservePitch,
       speed:          speed,
@@ -312,4 +331,4 @@ const Waveform: FC<Props> = ({
   )
 }
 
-export default Waveform
+export default Track
