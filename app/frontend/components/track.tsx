@@ -17,7 +17,7 @@ interface Props {
   speedProp:     number,
   startProp:     number,
   stopProp:      number,
-  zoomProp:      number,
+  title:         string
 }
 
 const Track: FC<Props> = ({
@@ -31,7 +31,7 @@ const Track: FC<Props> = ({
   speedProp,
   startProp,
   stopProp,
-  zoomProp
+  title
 }) => {
   const waveformRef = useRef<HTMLDivElement | null>(null)
   const wavesurfer  = useRef<WaveSurfer | null>(null)
@@ -49,7 +49,7 @@ const Track: FC<Props> = ({
   const [ speed, setSpeed ]                   = useState(speedProp)
   const [ start, setStart ]                   = useState(startProp)
   const [ stop, setStop ]                     = useState(stopProp)
-  const [ zoom, setZoom ]                     = useState(zoomProp)
+  const [ updated, setUpdated ]               = useState(false)
 
   const regions  = RegionsPlugin.create()
   const envelope = EnvelopePlugin.create({
@@ -69,12 +69,11 @@ const Track: FC<Props> = ({
 
     if (play == true && isPlayingProp == true) {
       setIsPlaying(true)
-      wavesurfer.current?.playPause()
+      wavesurfer.current?.play()
     }
     if (play == false) {
       setIsPlaying(false)
-      wavesurfer.current?.playPause()
-
+      wavesurfer.current?.pause()
     }
   }, [play])
 
@@ -189,6 +188,8 @@ const Track: FC<Props> = ({
 
   // Saves the current state of the loop:
   const saveLoop = () => {
+    setUpdated(true)
+
     const state = {
       envelope:       env,
       is_playing:     isUsed,
@@ -200,6 +201,11 @@ const Track: FC<Props> = ({
     }
 
     axios.post(`/api/update-track/${id}`, state)
+      .then(() => {
+        setTimeout(() => {
+          setUpdated(false)
+        }, 1500)
+      })
   }
 
   // Show/hide the edit controls
@@ -226,7 +232,6 @@ const Track: FC<Props> = ({
   const updateZoom = (event) => {
     const minPxPerSec = event.target.valueAsNumber
 
-    setZoom(minPxPerSec)
     wavesurfer.current?.zoom(minPxPerSec)
   }
 
@@ -235,14 +240,16 @@ const Track: FC<Props> = ({
       <div className="overflow-hidden">
         <div className="mb-4">
           <div>
-            <button onClick={playPause} className="bg-gray-800 text-white px-2 py-1 text-xs mx-2 cursor-pointer" >
-              { isPlaying ? 'PAUSE' : 'PLAY' }
-            </button>
-            <button onClick={toggleControl} className="bg-gray-800 text-white px-2 py-1 text-xs mx-2 cursor-pointer" >
+            <span className='text-white me-4'>{ title }</span>
+            { isPlaying
+              ? <button onClick={playPause} className="text-orange-500 border border-teal-orange rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PAUSE</button>
+              : <button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PLAY</button>
+            }
+            <button onClick={toggleControl} className="text-teal-500 border border-teal-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer" >
               EDIT
             </button>
-            <button onClick={saveLoop} className="bg-gray-800 text-white px-2 py-1 text-xs mx-2 cursor-pointer" >
-              SAVE
+            <button onClick={saveLoop} className="text-teal-500 border border-teal-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer" >
+              { updated ? 'UPDATING' : 'SAVE' }
             </button>
           </div>
           { showEdit && <div className='fixed text-white p-4 z-[100]'>
@@ -254,7 +261,7 @@ const Track: FC<Props> = ({
                 >
                   <option value="speed">Speed</option>
                   <option value="pan">Pan</option>
-                  <option value="zoom">Zoom</option>
+                  {/* <option value="zoom">Zoom</option> */}
                 </select>
 
                 <div className="mt-4">
@@ -323,9 +330,11 @@ const Track: FC<Props> = ({
             </div>
           }
         </div>
-        <div className='overflow-x-auto w-[90vw]'>
-          <div ref={waveformRef} className='waveform min-w-[90vw]'/>
+
+        <div className="min-w-[90vw] overflow-x-auto">
+          <div ref={waveformRef} className="waveform min-w-[90vw]" />
         </div>
+
       </div>
     </div>
   )

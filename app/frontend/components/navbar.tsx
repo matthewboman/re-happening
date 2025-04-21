@@ -8,24 +8,24 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="shadow-md navbar">
+    <nav className="bg-slate-900 border-b border-white text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex-shrink-0 flex items-center">
-            <a href="https://exclusive-or.io" className="text-xl font-semibold text-gray-800">
+            <a href="https://exclusive-or.io" className="text-xl font-semibold">
               XOR
             </a>
           </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-4 items-center">
-            <a href="/" className="text-gray-800 hover:text-gray-600">
-              concrete radio
+            <a href="/" className="">
+              concrète radio
             </a>
-            <a href="/how-to" className="text-gray-800 hover:text-gray-600">
+            <a href="/how-to" className="">
               guide
             </a>
-            <a href="/about" className="text-gray-800 hover:text-gray-600">
+            <a href="/about" className="">
               about
             </a>
           </div>
@@ -34,12 +34,12 @@ const Navbar = () => {
           <div className="flex items-center md:hidden">
             <button
               onClick={toggleMenu}
-              className="text-gray-800 hover:text-gray-600 focus:outline-none"
+              className="tfocus:outline-none"
             >
               <svg
                 className="h-6 w-6"
                 fill="none"
-                stroke="currentColor"
+                stroke="white"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
@@ -59,13 +59,13 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <a href="/" className="text-gray-800 hover:text-gray-600 block">
-              concrete radio
+            <a href="/" className="block">
+              concrète radio
             </a>
-            <a href="/how-to" className="text-gray-800 hover:text-gray-600 block">
+            <a href="/how-to" className="block">
               guide
             </a>
-            <a href="/about" className="text-gray-800 hover:text-gray-600 block">
+            <a href="/about" className="block">
               about
             </a>
           </div>

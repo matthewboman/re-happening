@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
-import axios        from 'axios'
-import Clippy       from '../components/clippy'
-import Instructions from '../components/instructions'
-import NewTrack     from '../components/new_track'
-import Track        from '../components/track'
+import axios    from 'axios'
+import Clippy   from '../components/clippy'
+import Guide    from './guide'
+import NewTrack from '../components/new_track'
+import Track    from '../components/track'
 
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
@@ -26,7 +26,6 @@ const DEFAULT_PAN   = 0
 const DEFAULT_SPEED = 1
 const DEFAULT_START = 1
 const DEFAULT_STOP  = 10
-const DEFAULT_ZOOM  = 10
 
 const HEADERS = { headers: {
   'Accept':       'application/json',
@@ -65,19 +64,20 @@ export default function Infinity() {
 
   return (
     <div>
-      <div className='p-4 md:p-[4rem] bg-black'>
+      <div className='p-4 md:p-[4rem] bg-slate-950'>
         {showNew && (
           <div className='mb-4 min-h-40'>
             <NewTrack addTrack={addTrack}/>
           </div>
         )}
-        <div className='mb-4 flex space-x-4'>
-          <button onClick={() => setShowNew(!showNew)} className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm disabled:opacity-50">
+        <div className='mb-[2rem] flex space-x-4 items-center justify-center'>
+          <button onClick={() => setShowNew(!showNew)} className="px-4 py-2 w-40 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm disabled:opacity-50">
             { showNew ? 'Hide' : 'Add your track' }
           </button>
-          <button onClick={playAllActive} className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm disabled:opacity-50">
-            { playing ? 'Pause' : 'Play' } composition
-          </button>
+          { playing
+            ? <button onClick={playAllActive} className="px-4 py-2 w-40 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm disabled:opacity-50">Pause composition</button>
+            : <button onClick={playAllActive} className="px-4 py-2 w-40 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm disabled:opacity-50">Play composition</button>
+          }
         </div>
         <div className='mt-4'>
           <ResponsiveGridLayout
@@ -112,7 +112,7 @@ export default function Infinity() {
                       speedProp     = { t.speed || DEFAULT_SPEED }
                       startProp     = { t.start || DEFAULT_START }
                       stopProp      = { t.stop || DEFAULT_STOP }
-                      zoomProp      = { DEFAULT_ZOOM } />
+                      title         = { t.title || 'fuck '} />
                   </div>
                 </div>
               ))
@@ -121,7 +121,7 @@ export default function Infinity() {
         </div>
       </div>
       <Clippy>
-        <Instructions/>
+        <Guide/>
       </Clippy>
     </div>
   )

@@ -3,18 +3,20 @@ import axios        from 'axios'
 import Oscilliscope from './oscilliscope'
 import Waveform     from './waveform'
 
+const FORM = {
+  name:           '',
+  email:          '',
+  title:          '',
+  receiveUpdates: false,
+  participate:    false
+}
+
 const NewTrack = ({ addTrack }) => {
   const [ audioURL, setAudioURL ]       = useState<string | null>(null)
   const [ isPlaying, setIsPlaying ]     = useState(false)
   const [ isRecording, setIsRecording ] = useState(false)
   const [ showForm, setShowForm ]       = useState(false)
-  const [ form, setForm ]               = useState({
-    name:           '',
-    email:          '',
-    title:          '',
-    receiveUpdates: false,
-    participate:    false
-  })
+  const [ form, setForm ]               = useState(FORM)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef   = useRef<Blob[]>([])
@@ -105,6 +107,8 @@ const NewTrack = ({ addTrack }) => {
       .then(res => {
         const track = res.data.track
         addTrack(track)
+        setForm(FORM)
+        setAudioURL(null)
       })
 
     setShowForm(false)
@@ -126,7 +130,7 @@ const NewTrack = ({ addTrack }) => {
           <div className="flex space-x-4">
             <button
               onClick={handleRecord}
-              className={`px-4 py-2 rounded-xl text-white text-sm ${
+              className={`px-4 py-2 w-24 rounded-xl text-white text-sm ${
                 isRecording ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
@@ -135,7 +139,7 @@ const NewTrack = ({ addTrack }) => {
             <button
               onClick={handlePlayback}
               disabled={!audioURL}
-              className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm disabled:opacity-50"
+              className="px-4 py-2 w-24 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm disabled:opacity-50"
             >
               {isPlaying ? 'Pause' : 'Play'}
             </button>
