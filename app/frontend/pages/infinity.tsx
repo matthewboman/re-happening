@@ -44,6 +44,10 @@ export default function Infinity() {
       })
   }, [])
 
+  const today  = new Date()
+  const after  = new Date('2025-05-04')
+  const canAdd = today < after
+
   // Add track to top of the list.
   const addTrack = (track) => {
     setTracks([ track, ...tracks ])
@@ -71,9 +75,11 @@ export default function Infinity() {
           </div>
         )}
         <div className='mb-[2rem] flex space-x-4 items-center justify-center'>
-          <button onClick={() => setShowNew(!showNew)} className="px-4 py-2 w-40 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm disabled:opacity-50">
-            { showNew ? 'Hide' : 'Add your track' }
-          </button>
+          {canAdd && (
+            <button onClick={() => setShowNew(!showNew)} className="px-4 py-2 w-40 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm disabled:opacity-50">
+              { showNew ? 'Hide' : 'Add your track' }
+            </button>
+          )}
           { playing
             ? <button onClick={playAllActive} className="px-4 py-2 w-40 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm disabled:opacity-50">Pause composition</button>
             : <button onClick={playAllActive} className="px-4 py-2 w-40 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm disabled:opacity-50">Play composition</button>

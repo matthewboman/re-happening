@@ -9,4 +9,11 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  build: {
+    manifest: true,
+    outDir: 'public/vite',
+    rollupOptions: {
+      input: 'app/frontend/entrypoints/application.tsx'
+    }
+  }
 })
