@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import axios    from 'axios'
 import Clippy   from '../components/clippy'
@@ -36,12 +36,27 @@ export default function Infinity() {
   const [ playing, setPlaying ] = useState(false)
   const [ showNew, setShowNew ] = useState(false)
   const [ tracks, setTracks ]   = useState([])
+  const tracksRef = useRef([])
 
   useEffect(() => {
     axios.get('/api/get-all-tracks', HEADERS)
       .then(res => {
         setTracks(res.data.tracks)
       })
+  }, [])
+
+  useEffect(() => {
+    tracksRef.current = tracks
+  }, [tracks])
+
+  // Handle data updates.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      getNewTracks(),
+      getTrackUpdates()
+    }, 60000) // 60,000 ms = 1 minute
+
+    return () => clearInterval(interval) // cleanup on unmount
   }, [])
 
   const today  = new Date()
@@ -54,9 +69,54 @@ export default function Infinity() {
     updatePositions(tracks)
   }
 
+  // Gets any new tracks that have been added since page load.
+  const getNewTracks = () => {
+    if (tracksRef.current.length === 0) return
+
+    axios.post('/api/get-new-tracks', { existing_ids: tracksRef.current.map(t => t.id)})
+      .then(res => {
+        setTracks([ ...res.data.new_tracks, ...tracksRef.current ])
+      })
+  }
+
+  // Gets the track data from the backend.
+  const getTrackUpdates = () => {
+    if (tracksRef.current.length === 0) return
+
+    axios.post('/api/update-track-data', { track_ids: tracksRef.current.map(t => t.id)})
+      .then(res => {
+        updateTracks(res.data.updated_tracks)
+      })
+  }
+
   // Plays all tracks selected as playing.
   const playAllActive = () => {
     setPlaying(!playing)
+  }
+
+  // Update track data
+  const updateTracks = (updatedData) => {
+    const updateMap = new Map(
+      updatedData.map(track => [track.id, track])
+    )
+
+    setTracks(prevTracks =>
+      prevTracks.map(track => {
+        const updated = updateMap.get(track.id)
+        if (!updated) return track
+
+        return {
+          ...track,
+          isPlaying:     updated.is_playing,
+          start:         updated.start,
+          stop:          updated.stop,
+          envelope:      updated.envelope,
+          pan:           updated.pan,
+          speed:         updated.speed,
+          preservePitch: updated.preserve_pitch
+        }
+      })
+    )
   }
 
   // Update the position of tracks.
@@ -103,22 +163,21 @@ export default function Infinity() {
           >
             {
               tracks.map(t => (
-                <div key={t.id} className='flex'>
+                <div className='flex' key={t.id}>
                   <div className='drag-handle border-4 border-gray-300 cursor-pointer my-6'></div>
                   <div className="pl-4 flex-1">
                     <Track
                       id            = { t.id }
-                      key           = { t.title }
                       audioFile     = { t.url }
                       envProp       = { t.envelope || DEFAULT_ENVELOPE }
-                      isPlayingProp = { t.is_playing || false }
+                      isUsedProp        = { t.is_playing || false }
                       panProp       = { t.pan || DEFAULT_PAN }
                       pitchProp     = { t.preserve_pitch }
                       play          = { playing }
                       speedProp     = { t.speed || DEFAULT_SPEED }
                       startProp     = { t.start || DEFAULT_START }
                       stopProp      = { t.stop || DEFAULT_STOP }
-                      title         = { t.title || 'fuck '} />
+                      title         = { t.title || ''} />
                   </div>
                 </div>
               ))

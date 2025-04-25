@@ -10,7 +10,7 @@ interface Props {
   id:            number,
   audioFile:     string,
   envProp:       EnvelopePoint[],
-  isPlayingProp: boolean,
+  isUsedProp: boolean,
   panProp:       number,
   pitchProp:     boolean,
   play:          boolean,
@@ -24,7 +24,7 @@ const Track: FC<Props> = ({
   id,
   audioFile,
   envProp,
-  isPlayingProp,
+  isUsedProp,
   panProp,
   pitchProp,
   play,
@@ -53,21 +53,21 @@ const Track: FC<Props> = ({
 
   const regions  = RegionsPlugin.create()
   const envelope = EnvelopePlugin.create({
-      volume:          0.8,
-      lineColor:       '#548fe8',
-      lineWidth:       '2',
-      dragPointSize:   6,
-      dragLine:        true,
-      dragPointFill:   '#548fe8',
-      dragPointStroke: '#548fe8',
-      points:          envProp,
-    })
+    volume:          0.8,
+    lineColor:       '#548fe8',
+    lineWidth:       '2',
+    dragPointSize:   6,
+    dragLine:        true,
+    dragPointFill:   '#548fe8',
+    dragPointStroke: '#548fe8',
+    points:          envProp,
+  })
 
   // Playback from parent
   useEffect(() => {
-    setIsUsed(isPlayingProp)
+    setIsUsed(isUsedProp)
 
-    if (play == true && isPlayingProp == true) {
+    if (play == true && isUsed == true) {
       setIsPlaying(true)
       wavesurfer.current?.play()
     }
@@ -88,6 +88,58 @@ const Track: FC<Props> = ({
     }
   }, [ audioFile ])
 
+  // // Update whether playing
+  // useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
+
+  // Update playback speed
+  // useEffect(() => {
+  //   setSpeed(speedProp)
+
+  //   if (wavesurfer.current) {
+  //     wavesurfer.current.setPlaybackRate(speedProp)
+  //   }
+  // }, [speedProp])
+
+  // Update pitch retention
+  // useEffect(() => {
+
+  //   setPreservePitch(pitchProp)
+  //   wavesurfer.current?.destroy()
+
+  //   if (waveformRef.current) {
+  //     wavesurfer.current = create(waveformRef.current)
+  //     wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
+  //   }
+  // }, [pitchProp])
+
+  // Update start/stop
+  // useEffect(() => {
+  //   setStart(startProp)
+  //   setStop(stopProp)
+
+  //   if (wavesurfer.current && activeRegion.current) {
+  //     activeRegion.current.setOptions({
+  //       start: startProp,
+  //       end:  stopProp
+  //     })
+  //   }
+  // }, [startProp, stopProp])
+
+  // Rebuild waveform to regenerate envelope
+//   useEffect(() => {
+//     wavesurfer.current?.destroy()
+//     setEnv(envProp)
+//     setPreservePitch(pitchProp)
+//     setSpeed(speedProp)
+// console.log('all set')
+//     if (waveformRef.current) {
+//       wavesurfer.current = create(waveformRef.current)
+//       wavesurfer.current.setPlaybackRate(speedProp)
+//       wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
+//     }
+//   }, [envProp, pitchProp, speedProp])
+
+  // Create Wavesurfer waveform
   const create = (waveformRef: HTMLElement) => {
     let ws = WaveSurfer.create({
       container:     waveformRef,
@@ -103,13 +155,15 @@ const Track: FC<Props> = ({
     ws.load(audioFile)
 
     ws.on('decode', () => {
-      regions.addRegion({
+      const region = regions.addRegion({
         start:  startProp,
         end:    stopProp,
         color:  hexToRgba("#54e8c5"),
         drag:   true,
         resize: true
       })
+
+      activeRegion.current = region
     })
 
     // Envelope updates
@@ -241,10 +295,9 @@ const Track: FC<Props> = ({
         <div className="mb-4">
           <div>
             <span className='text-white me-4'>{ title }</span>
-            { isPlaying
-              ? <button onClick={playPause} className="text-orange-500 border border-teal-orange rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PAUSE</button>
-              : <button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PLAY</button>
-            }
+            { isPlaying && (<button onClick={playPause} className="text-orange-500 border border-teal-orange rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PAUSE</button>)}
+            { (!isPlaying && isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">SOLO</button>)}
+            { (!isPlaying && !isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PLAY</button>)}
             <button onClick={toggleControl} className="text-teal-500 border border-teal-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer" >
               EDIT
             </button>

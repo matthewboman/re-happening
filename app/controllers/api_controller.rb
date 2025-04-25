@@ -27,11 +27,21 @@ class ApiController < ApplicationController
 
     # GET - Returns all tracks.
     def get_all_tracks
-      tracks = Track.select(:id, :title, :url, :is_playing, :position, :start, :stop, :speed, :preserve_pitch, :pan, :envelope)
+      tracks = Track.select(:id, :title, :url, :is_playing, :position, :start, :stop, :speed, :preserve_pitch, :pan, :envelope, :updated_at)
                     .order(:position)
                     .as_json
 
       render json: { tracks: tracks }
+    end
+
+    # POST - Returns new tracks since page load.
+    def get_new_tracks
+      existing_ids = params[:existing_ids]
+      tracks       = Track.where
+                          .not(id: existing_ids)
+                          .as_json
+
+      render json: { new_tracks: tracks }
     end
 
     # POST - Updates the playback state.
@@ -48,6 +58,15 @@ class ApiController < ApplicationController
       track.save!
 
       render json: {}
+    end
+
+    # POST - Returns updated track data to frontend for provided tracks.
+    def update_track_data
+      track_ids = params[:track_ids]
+      tracks    = Track.where(id: track_ids)
+                       .as_json
+
+      render json: { updated_tracks: tracks }
     end
 
     # POST - Updates the display order.
