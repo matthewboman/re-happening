@@ -107,13 +107,13 @@ export default function Infinity() {
 
         return {
           ...track,
-          isPlaying:     updated.is_playing,
-          start:         updated.start,
-          stop:          updated.stop,
-          envelope:      updated.envelope,
-          pan:           updated.pan,
-          speed:         updated.speed,
-          preservePitch: updated.preserve_pitch
+          is_playing:     updated.is_playing,
+          start:          updated.start,
+          stop:           updated.stop,
+          envelope:       updated.envelope,
+          pan:            updated.pan,
+          speed:          updated.speed,
+          preserve_pitch: updated.preserve_pitch
         }
       })
     )
@@ -170,7 +170,7 @@ export default function Infinity() {
                       id            = { t.id }
                       audioFile     = { t.url }
                       envProp       = { t.envelope || DEFAULT_ENVELOPE }
-                      isUsedProp        = { t.is_playing || false }
+                      isUsedProp    = { t.is_playing || false }
                       panProp       = { t.pan || DEFAULT_PAN }
                       pitchProp     = { t.preserve_pitch }
                       play          = { playing }

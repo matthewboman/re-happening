@@ -88,56 +88,39 @@ const Track: FC<Props> = ({
     }
   }, [ audioFile ])
 
-  // // Update whether playing
-  // useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
+  // Update based on others: playing
+  useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
 
-  // Update playback speed
-  // useEffect(() => {
-  //   setSpeed(speedProp)
+  // Update based on others: region loop
+  useEffect(() => {
+    setStart(startProp)
+    setStop(stopProp)
 
-  //   if (wavesurfer.current) {
-  //     wavesurfer.current.setPlaybackRate(speedProp)
-  //   }
-  // }, [speedProp])
+    if (wavesurfer.current && activeRegion.current) {
+      activeRegion.current.setOptions({
+        start: startProp,
+        end:  stopProp
+      })
+    }
+  }, [startProp, stopProp])
 
-  // Update pitch retention
-  // useEffect(() => {
+  // Update based on others: pitch, speen, envelope
+  useEffect(() => {
+    // Remove the current instance
+    wavesurfer.current?.destroy()
 
-  //   setPreservePitch(pitchProp)
-  //   wavesurfer.current?.destroy()
+    // Update state
+    setEnv(envProp)
+    setPreservePitch(pitchProp)
+    setSpeed(speedProp)
 
-  //   if (waveformRef.current) {
-  //     wavesurfer.current = create(waveformRef.current)
-  //     wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
-  //   }
-  // }, [pitchProp])
-
-  // Update start/stop
-  // useEffect(() => {
-  //   setStart(startProp)
-  //   setStop(stopProp)
-
-  //   if (wavesurfer.current && activeRegion.current) {
-  //     activeRegion.current.setOptions({
-  //       start: startProp,
-  //       end:  stopProp
-  //     })
-  //   }
-  // }, [startProp, stopProp])
-
-  // Rebuild waveform to regenerate envelope
-//   useEffect(() => {
-//     wavesurfer.current?.destroy()
-//     setEnv(envProp)
-//     setPreservePitch(pitchProp)
-//     setSpeed(speedProp)
-// console.log('all set')
-//     if (waveformRef.current) {
-//       wavesurfer.current = create(waveformRef.current)
-//       wavesurfer.current.setPlaybackRate(speedProp)
-//       wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
-//     }
-//   }, [envProp, pitchProp, speedProp])
+    // Add to waveform
+    if (waveformRef.current) {
+      wavesurfer.current = create(waveformRef.current)
+      wavesurfer.current.setPlaybackRate(speedProp)
+      wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
+    }
+  }, [envProp, pitchProp, speedProp])
 
   // Create Wavesurfer waveform
   const create = (waveformRef: HTMLElement) => {
@@ -198,13 +181,11 @@ const Track: FC<Props> = ({
       panNode.current.connect(audioContext.current.destination)
     })
 
-    // TESTING: un-comment to test values
-    // regions.on('region-updated', (region) => {
-    //   console.log('Updated region', region)
-    // })
-    // envelope.on('points-change', (points) => {
-    //   console.log('Envelope points changed', points)
-    // })
+    // Pitch/speed on load
+    ws.on('ready', () => {
+      wavesurfer.current?.setPlaybackRate(speed)
+      wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), preservePitch)
+    })
 
     return ws
   }
