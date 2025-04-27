@@ -29,14 +29,14 @@
 !/tmp/storage/
 !/tmp/storage/.keep
 
-/public/assets
+#/public/assets
 /public/tracks
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
 # Vite Ruby
-/public/vite*
+#/public/vite*
 node_modules
 # Vite uses dotenv and suggests to ignore local-only env files. See
 # https://vitejs.dev/guide/env-and-mode.html#env-files

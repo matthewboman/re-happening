@@ -1,0 +1,11 @@
+{
+  "entrypoints/application.tsx": {
+    "file": "assets/application-DbDnvbCj.js",
+    "name": "entrypoints/application.tsx",
+    "src": "entrypoints/application.tsx",
+    "isEntry": true,
+    "imports": [
+      "entrypoints/application.tsx"
+    ]
+  }
+}
