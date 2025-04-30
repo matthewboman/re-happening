@@ -29,8 +29,8 @@
 !/tmp/storage/
 !/tmp/storage/.keep
 
-#/public/assets
-/public/tracks
+/public/assets
+/public/tracks/*
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key

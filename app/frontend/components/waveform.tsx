@@ -16,7 +16,7 @@ export default function Waveform({ audioURL, waveformCtrl }) {
       progressColor: "#54e8c5",
       barWidth:      0,
       audioRate:     1,
-      backend:       'MediaElement',
+      backend:       'WebAudio',
     })
 
     wavesurfer.current.load(audioURL)

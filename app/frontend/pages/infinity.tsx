@@ -52,8 +52,8 @@ export default function Infinity() {
   // Handle data updates.
   useEffect(() => {
     const interval = setInterval(() => {
-      getNewTracks(),
-      getTrackUpdates()
+      // getNewTracks(),
+      // getTrackUpdates()
     }, 60000) // 60,000 ms = 1 minute
 
     return () => clearInterval(interval) // cleanup on unmount
@@ -123,7 +123,9 @@ export default function Infinity() {
   const updatePositions = (arr) => {
     const positions = arr.map(a => ({ id: a.i, position: a.y }))
     axios.post('/api/update-track-order', { positions: positions })
-      .then(res => console.log(res))
+      .then(res => {
+        // console.log(res)
+      })
   }
 
   return (

@@ -64,10 +64,12 @@ const NewTrack = ({ addTrack }) => {
   const handleRecord = async () => {
     if (isRecording) {
       mediaRecorderRef.current?.stop()
+      streamRef.current?.getTracks().forEach(t => t.stop())
       setIsRecording(false)
     } else {
       const stream      = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder    = new MediaRecorder(stream)
+      const mimeType    = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm'
+      const recorder    = new MediaRecorder(stream, { mimeType })
       streamRef.current = stream
 
       audioChunksRef.current = []

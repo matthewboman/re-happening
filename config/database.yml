@@ -13,6 +13,6 @@ test:
 
 production:
   <<: *default
-  database: rehappening_development
+  database: rehappening
   # username: rehappening
   # password:
