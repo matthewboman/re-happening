@@ -18,12 +18,57 @@ const NewTrack = ({ addTrack }) => {
   const [ showForm, setShowForm ]       = useState(false)
   const [ form, setForm ]               = useState(FORM)
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const audioChunksRef   = useRef<Blob[]>([])
-  const audioRef         = useRef<HTMLAudioElement | null>(null)
-  const recordedBlobRef  = useRef(null)
-  const streamRef        = useRef(null)
-  const waveformRef      = useRef({})
+  const audioContextRef = useRef(null)
+  const audioRef        = useRef<HTMLAudioElement | null>(null)
+  const chunksRef       = useRef([])
+  const inputRef        = useRef(null)
+  const processorRef    = useRef(null)
+  const recordedBlobRef = useRef(null)
+  const streamRef       = useRef(null)
+  const waveformRef     = useRef({})
+
+  // Convert PCM to .wav
+  const encodeWav = (buffers, sampleRate) => {
+    const length = buffers.reduce((sum, b) => sum + b.length, 0)
+    const buffer = new ArrayBuffer(44 + length * 2)
+    const view   = new DataView(buffer)
+
+    const writeString = (view, offset, str) => {
+      for (let i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i))
+      }
+    }
+
+    let offset = 0
+    writeString(view, offset, "RIFF"); offset += 4
+    view.setUint32(offset, 36 + length * 2, true); offset += 4
+    writeString(view, offset, "WAVE"); offset += 4
+    writeString(view, offset, "fmt "); offset += 4
+    view.setUint32(offset, 16, true); offset += 4
+    view.setUint16(offset, 1, true); offset += 2
+    view.setUint16(offset, 1, true); offset += 2
+    view.setUint32(offset, sampleRate, true); offset += 4
+    view.setUint32(offset, sampleRate * 2, true); offset += 4
+    view.setUint16(offset, 2, true); offset += 2
+    view.setUint16(offset, 16, true); offset += 2
+    writeString(view, offset, "data"); offset += 4
+    view.setUint32(offset, length * 2, true); offset += 4
+
+    let pos = offset
+
+    for (let i = 0; i < buffers.length; i++) {
+      const b = buffers[i]
+
+      for (let j = 0; j < b.length; j++) {
+        let s = Math.max(-1, Math.min(1, b[j]))
+        s = s < 0 ? s * 0x800 : s * 0x7FFF
+        view.setInt16(pos, s, true)
+        pos += 2
+      }
+    }
+
+    return new Blob([ view ], { type: "audio/wav" })
+  }
 
   // Update form elements
   const handleChange = (e) => {
@@ -61,64 +106,7 @@ const NewTrack = ({ addTrack }) => {
     }
   }
 
-  // Toggle track record
-  const handleRecord = async () => {
-    if (isRecording) {
-      mediaRecorderRef.current?.stop()
-      streamRef.current?.getTracks().forEach(t => t.stop())
-      setIsRecording(false)
-    } else {
-      const stream      = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder    = new MediaRecorder(stream)
-      streamRef.current = stream
-
-      audioChunksRef.current = []
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          audioChunksRef.current.push(e.data)
-        }
-      }
-
-      recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-        recordedBlobRef.current = audioBlob
-        const url       = URL.createObjectURL(audioBlob)
-        setAudioURL(url)
-      }
-
-      recorder.start(100)
-      mediaRecorderRef.current = recorder
-      setIsRecording(true)
-    }
-  }
-
-  // Submit track && form
-  // const handleSubmit = async (e) => {
-  //   if (!form.title.trim()) {
-  //     alert('The track must have a name')
-  //     return
-  //   }
-
-  //   const blob = await fetch(audioURL!).then(res => res.blob())
-  //   const data = new FormData()
-
-  //   data.append('audio', blob, `${form.title}.webm`)
-  //   Object.entries(form).forEach(([key, value]) => {
-  //     data.append(key, value.toString())
-  //   })
-
-  //   axios.post('/api/create-track', data)
-  //     .then(res => {
-  //       const track = res.data.track
-  //       addTrack(track)
-  //       setForm(FORM)
-  //       setAudioURL(null)
-  //     })
-
-  //   setShowForm(false)
-  // }
-
+  // Submit form && audio
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -133,7 +121,7 @@ const NewTrack = ({ addTrack }) => {
     }
 
     const data = new FormData()
-    data.append('audio', recordedBlobRef.current, `${form.title}.webm`)
+    data.append('audio', recordedBlobRef.current, `${form.title}.wav`)
     Object.entries(form).forEach(([key, value]) => {
       data.append(key, value.toString())
     })
@@ -147,6 +135,46 @@ const NewTrack = ({ addTrack }) => {
       })
 
     setShowForm(false)
+  }
+
+  // Record PCM
+  const startRecording = async () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    audioContextRef.current = audioContext
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    streamRef.current = stream
+
+    const input = audioContext.createMediaStreamSource(stream)
+    inputRef.current = input
+
+    const processor = audioContext.createScriptProcessor(4096, 1, 1)
+    processorRef.current = processor
+    chunksRef.current = []
+
+    processor.onaudioprocess = (e) => {
+      const data = e.inputBuffer.getChannelData(0)
+      chunksRef.current.push(new Float32Array(data))
+    }
+
+    input.connect(processor)
+    processor.connect(audioContext.destination)
+
+    setIsRecording(true)
+  }
+
+  // Handle recording stop
+  const stopRecording = () => {
+    processorRef.current.disconnect()
+    inputRef.current.disconnect()
+    streamRef.current.getTracks().forEach((track) => track.stop())
+
+    const wavBlob = encodeWav(chunksRef.current, audioContextRef.current.sampleRate)
+    recordedBlobRef.current = wavBlob
+    const url = URL.createObjectURL(wavBlob)
+
+    setAudioURL(url)
+    setIsRecording(false)
   }
 
   return (
@@ -164,7 +192,7 @@ const NewTrack = ({ addTrack }) => {
           </div>
           <div className="flex space-x-4">
             <button
-              onClick={handleRecord}
+              onClick={isRecording ? stopRecording : startRecording}
               className={`px-4 py-2 w-24 rounded-xl text-white text-sm ${
                 isRecording ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
               }`}
