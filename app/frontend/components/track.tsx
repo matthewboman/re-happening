@@ -39,6 +39,9 @@ const Track: FC<Props> = ({
   let audioContext  = useRef<any>(null)
   let panNode       = useRef<any>(null)
 
+  // TEMP - iphone debugging
+  // const playPauseRef = useRef(null)
+
   const [ isPlaying, setIsPlaying ]           = useState(false) // Current playback state
   const [ isUsed, setIsUsed ]                 = useState(false) // Saves in DB whether selected to play
   const [ env, setEnv ]                       = useState(envProp)
@@ -89,38 +92,38 @@ const Track: FC<Props> = ({
   }, [ audioFile ])
 
   // Update based on others: playing
-  useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
+  // useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
 
   // Update based on others: region loop
-  useEffect(() => {
-    setStart(startProp)
-    setStop(stopProp)
+  // useEffect(() => {
+  //   setStart(startProp)
+  //   setStop(stopProp)
 
-    if (wavesurfer.current && activeRegion.current) {
-      activeRegion.current.setOptions({
-        start: startProp,
-        end:  stopProp
-      })
-    }
-  }, [startProp, stopProp])
+  //   if (wavesurfer.current && activeRegion.current) {
+  //     activeRegion.current.setOptions({
+  //       start: startProp,
+  //       end:  stopProp
+  //     })
+  //   }
+  // }, [startProp, stopProp])
 
   // Update based on others: pitch, speen, envelope
-  useEffect(() => {
-    // Remove the current instance
-    wavesurfer.current?.destroy()
+  // useEffect(() => {
+  //   // Remove the current instance
+  //   wavesurfer.current?.destroy()
 
-    // Update state
-    setEnv(envProp)
-    setPreservePitch(pitchProp)
-    setSpeed(speedProp)
+  //   // Update state
+  //   setEnv(envProp)
+  //   setPreservePitch(pitchProp)
+  //   setSpeed(speedProp)
 
-    // Add to waveform
-    if (waveformRef.current) {
-      wavesurfer.current = create(waveformRef.current)
-      wavesurfer.current.setPlaybackRate(speedProp)
-      wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
-    }
-  }, [envProp, pitchProp, speedProp])
+  //   // Add to waveform
+  //   if (waveformRef.current) {
+  //     wavesurfer.current = create(waveformRef.current)
+  //     wavesurfer.current.setPlaybackRate(speedProp)
+  //     wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
+  //   }
+  // }, [envProp, pitchProp, speedProp])
 
   // Create Wavesurfer waveform
   const create = (waveformRef: HTMLElement) => {
@@ -133,11 +136,26 @@ const Track: FC<Props> = ({
       barWidth:      0,
       audioRate:     1,
       url:           audioFile,
-      backend:       'WebAudio',
+      backend:       'MediaElement',
       plugins:       [ regions, envelope ]
     })
 
-    ws.load(audioFile)
+    ws.on('ready', () => {
+      // debug('WaveSurfer ready')
+      // debug(`isReady: ${ws.isReady}`)
+      // debug(`backend: ${!!ws.backend}`)
+      // debug(`getAudioContext: ${typeof ws.backend?.getAudioContext}`)
+
+      const ctx = ws.backend?.getAudioContext()
+      // debug(`AudioContext state: ${ctx?.state}`)
+
+      if (ctx?.state === 'suspended') {
+        ctx.resume().then(() => {
+          // debug('AudioContext resumed')
+        })
+      }
+    })
+
 
     ws.on('decode', () => {
       const region = regions.addRegion({
@@ -169,6 +187,25 @@ const Track: FC<Props> = ({
       setStart(region.start)
       setStop(region.end)
     })
+
+    // TEMP - iphone debugging
+    // ws.on('ready', () => {
+    //   playPauseRef.current = async () => {
+    //     const ctx = wavesurfer.current?.backend?.getAudioContext()
+    //     debug(`AudioContext state: ${ctx?.state}`)
+
+    //     if (ctx?.state === 'suspended') {
+    //       await ctx.resume()
+    //       debug('AudioContext resumed')
+    //     }
+
+    //     const peaks = wavesurfer.current?.backend?.getPeaks?.()
+    //     debug(`Peaks: ${JSON.stringify(peaks)}`)
+
+    //     wavesurfer.current?.playPause()
+    //     debug('Toggled play/pause')
+    //   }
+    // })
 
     // Panning
     ws.on('ready', () => {
@@ -217,9 +254,18 @@ const Track: FC<Props> = ({
   }
 
   // Toggles play/pause
-  const playPause = () => {
+  const playPause = async () => {
     setIsPlaying(!isPlaying)
     setIsUsed(!isUsed)
+
+    const ctx = wavesurfer.current?.backend?.getAudioContext()
+
+    if (ctx?.state === 'suspended') {
+      await ctx.resume()
+    }
+
+    const peaks = wavesurfer.current?.backend?.getPeaks?.()
+
     wavesurfer.current?.playPause()
   }
 
@@ -255,6 +301,14 @@ const Track: FC<Props> = ({
     const preserve = event.target.checked
     setPreservePitch(preserve)
     wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), preserve)
+
+    // iPhone workaround
+    const media = wavesurfer.current?.backend?.media
+    if (media) {
+      media.preservesPitch = preserve
+      media.mozPreservesPitch = preserve
+      media.webkitPreservesPitch = preserve
+    }
   }
 
   // Changes the playback speed of the audio
@@ -263,6 +317,10 @@ const Track: FC<Props> = ({
 
     setSpeed(speed)
     wavesurfer.current?.setPlaybackRate(speed)
+
+    // iPhone workaround
+    const media = wavesurfer.current?.backend?.media
+    if (media) media.playbackRate = speed
   }
 
   // Changes the zoom of the waveform
@@ -272,9 +330,16 @@ const Track: FC<Props> = ({
     wavesurfer.current?.zoom(minPxPerSec)
   }
 
+  // TEMP - Debug on iPhone
+  // const debug = (msg) => {
+  //   const el = document.getElementById('debug')
+  //   if (el) el.textContent += `\ndebug: ${msg}`
+  // }
+
   return (
     <div>
       <div className="overflow-hidden">
+      {/* <div id="debug" style={{ whiteSpace: 'pre-wrap', fontSize: 10, color: 'white' }} className='text-teal'></div> */}
         <div className="mb-4">
           <div>
             <span className='text-white me-2'>{ title }</span>

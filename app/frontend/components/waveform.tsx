@@ -16,13 +16,17 @@ export default function Waveform({ audioURL, waveformCtrl }) {
       progressColor: "#54e8c5",
       barWidth:      0,
       audioRate:     1,
-      backend:       'WebAudio',
+      backend:       'MediaElement',
     })
 
     wavesurfer.current.load(audioURL)
 
     waveformCtrl?.({
-      play:  () => wavesurfer.current.play(),
+      play:  async () => {
+        const ctx = wavesurfer.current.getAudioContext()
+        if (ctx.state === 'suspended') await ctx.resume()
+        wavesurfer.current.play()
+      },
       pause: () => wavesurfer.current.pause()
     })
 
