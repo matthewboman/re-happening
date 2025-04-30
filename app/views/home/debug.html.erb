@@ -1,0 +1,27 @@
+# <div id="waveform"></div>
+#   <div id="controls">
+#     <button id="startStop">Start/Stop</button>
+#     <audio id="audio" src="/tracks/04-29-25-17-53_test-2.webm" preload="auto"></audio>
+#   </div>
+
+
+#   <script>
+#   const wavesurfer = WaveSurfer.create({
+#     container: document.body,
+#     waveColor: 'rgb(200, 0, 200)',
+#     progressColor: 'rgb(100, 0, 100)',
+#     barWidth: 10,
+#     barRadius: 10,
+#     barGap: 2,
+#     url: '/tracks/04-29-25-17-53_test-2.webm',
+#     duration: 22,
+#   })
+
+#   wavesurfer.on('interaction', () => {
+#     wavesurfer.play()
+#   })
+
+#   wavesurfer.on('finish', () => {
+#     wavesurfer.setTime(0)
+#   })
+#   </script>
