@@ -69,14 +69,15 @@ const NewTrack = ({ addTrack }) => {
       setIsRecording(false)
     } else {
       const stream      = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mimeType    = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm'
-      const recorder    = new MediaRecorder(stream, { mimeType })
+      const recorder    = new MediaRecorder(stream)
       streamRef.current = stream
 
       audioChunksRef.current = []
 
       recorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data)
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data)
+        }
       }
 
       recorder.onstop = () => {
@@ -86,7 +87,7 @@ const NewTrack = ({ addTrack }) => {
         setAudioURL(url)
       }
 
-      recorder.start()
+      recorder.start(100)
       mediaRecorderRef.current = recorder
       setIsRecording(true)
     }
