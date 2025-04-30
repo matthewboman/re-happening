@@ -10,7 +10,7 @@ interface Props {
   id:            number,
   audioFile:     string,
   envProp:       EnvelopePoint[],
-  isUsedProp: boolean,
+  isUsedProp:    boolean,
   panProp:       number,
   pitchProp:     boolean,
   play:          boolean,
@@ -133,6 +133,7 @@ const Track: FC<Props> = ({
       barWidth:      0,
       audioRate:     1,
       url:           audioFile,
+      backend:       'WebAudio',
       plugins:       [ regions, envelope ]
     })
 
@@ -276,11 +277,11 @@ const Track: FC<Props> = ({
       <div className="overflow-hidden">
         <div className="mb-4">
           <div>
-            <span className='text-white me-4'>{ title }</span>
-            { isPlaying && (<button onClick={playPause} className="text-orange-500 border border-teal-orange rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PAUSE</button>)}
-            { (!isPlaying && isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">SOLO</button>)}
-            { (!isPlaying && !isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer">PLAY</button>)}
-            <button onClick={toggleControl} className="text-teal-500 border border-teal-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer" >
+            <span className='text-white me-2'>{ title }</span>
+            { isPlaying && (<button onClick={playPause} className="text-orange-500 border border-teal-orange rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">PAUSE</button>)}
+            { (!isPlaying && isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">SOLO</button>)}
+            { (!isPlaying && !isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">PLAY</button>)}
+            <button onClick={toggleControl} className="text-teal-500 border border-teal-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer" >
               EDIT
             </button>
             <button onClick={saveLoop} className="text-teal-500 border border-teal-500 rounded-lg w-24 px-2 py-1 text-xs mx-2 cursor-pointer" >
