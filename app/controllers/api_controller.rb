@@ -14,13 +14,40 @@ class ApiController < ApplicationController
       filename  = "#{timestamp}_#{sanitized}.webm"
       filepath  = Rails.root.join('public', 'tracks', filename)
 
-      File.open(filepath, 'wb') { |f| f.write(uploaded_file.read) }
+      # Save webm
+      webm_path = Rails.root.join('public', 'tracks', filename)
+      File.open(webm_path, 'wb') { |f| f.write(uploaded_file.read) }
 
-      # Store track info
+      # Convert to .m4a
+      m4a_filename = filename.sub(/\.webm$/, '.m4a')
+      m4a_path     = Rails.root.join('public', 'tracks', m4a_filename)
+
+      # FFmpeg command
+      cmd = [
+        "ffmpeg",
+        "-y",
+        "-fflags", "+genpts",
+        "-i", Shellwords.escape(webm_path.to_s),
+        "-copyts",
+        "-avoid_negative_ts", "make_zero",
+        "-vn",
+        "-acodec", "aac",
+        "-b:a", "128k",
+        "-movflags", "+faststart",
+        Shellwords.escape(m4a_path.to_s)
+      ].join(" ")
+
+      # Run command and log output
+      output = `#{cmd} 2>&1`
+      Rails.logger.info("FFmpeg output:\n#{output}")
+
+      # system("ffmpeg -i #{Shellwords.escape(webm_path.to_s)} -c:a aac -b:a 128k #{Shellwords.escape(m4a_path.to_s)}")
+
+      # Store .m4a instead of .webm
       track = Track.create title: params[:title],
-                           name:  params[:name],
-                           email: params[:email],
-                           url:   "/tracks/#{filename}"
+                          name:  params[:name],
+                          email: params[:email],
+                          url:   "/tracks/#{m4a_filename}"
 
       render json: { track: track }, status: :created
     end

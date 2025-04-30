@@ -21,6 +21,7 @@ const NewTrack = ({ addTrack }) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef   = useRef<Blob[]>([])
   const audioRef         = useRef<HTMLAudioElement | null>(null)
+  const recordedBlobRef  = useRef(null)
   const streamRef        = useRef(null)
   const waveformRef      = useRef({})
 
@@ -80,6 +81,7 @@ const NewTrack = ({ addTrack }) => {
 
       recorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        recordedBlobRef.current = audioBlob
         const url       = URL.createObjectURL(audioBlob)
         setAudioURL(url)
       }
@@ -91,16 +93,46 @@ const NewTrack = ({ addTrack }) => {
   }
 
   // Submit track && form
+  // const handleSubmit = async (e) => {
+  //   if (!form.title.trim()) {
+  //     alert('The track must have a name')
+  //     return
+  //   }
+
+  //   const blob = await fetch(audioURL!).then(res => res.blob())
+  //   const data = new FormData()
+
+  //   data.append('audio', blob, `${form.title}.webm`)
+  //   Object.entries(form).forEach(([key, value]) => {
+  //     data.append(key, value.toString())
+  //   })
+
+  //   axios.post('/api/create-track', data)
+  //     .then(res => {
+  //       const track = res.data.track
+  //       addTrack(track)
+  //       setForm(FORM)
+  //       setAudioURL(null)
+  //     })
+
+  //   setShowForm(false)
+  // }
+
   const handleSubmit = async (e) => {
+    e.preventDefault()
+
     if (!form.title.trim()) {
       alert('The track must have a name')
       return
     }
 
-    const blob = await fetch(audioURL!).then(res => res.blob())
-    const data = new FormData()
+    if (!recordedBlobRef.current) {
+      alert('No recording found')
+      return
+    }
 
-    data.append('audio', blob, `${form.title}.webm`)
+    const data = new FormData()
+    data.append('audio', recordedBlobRef.current, `${form.title}.webm`)
     Object.entries(form).forEach(([key, value]) => {
       data.append(key, value.toString())
     })
