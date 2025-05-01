@@ -62,7 +62,7 @@ const NewTrack = ({ addTrack }) => {
 
       for (let j = 0; j < b.length; j++) {
         let s = Math.max(-1, Math.min(1, b[j]))
-        s = s < 0 ? s * 0x800 : s * 0x7FFF
+        s = s < 0 ? s * 0x8000 : s * 0x7FFF
         view.setInt16(pos, s, true)
         pos += 2
       }
