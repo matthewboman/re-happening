@@ -13,6 +13,7 @@ const FORM = {
 
 const NewTrack = ({ addTrack }) => {
   const [ audioURL, setAudioURL ]       = useState<string | null>(null)
+  const [ error, setError ]             = useState(false)
   const [ isPlaying, setIsPlaying ]     = useState(false)
   const [ isRecording, setIsRecording ] = useState(false)
   const [ showForm, setShowForm ]       = useState(false)
@@ -82,6 +83,7 @@ const NewTrack = ({ addTrack }) => {
 
   // Delete existing track
   const handleDelete = () => {
+    setError(false)
     setAudioURL(null)
     setIsPlaying(false)
 
@@ -133,12 +135,18 @@ const NewTrack = ({ addTrack }) => {
         setForm(FORM)
         setAudioURL(null)
       })
+      .catch(err => {
+        console.log(err)
+        setError(true)
+      })
 
     setShowForm(false)
   }
 
   // Record PCM
   const startRecording = async () => {
+    setError(false)
+
     const audioContext = new (window.AudioContext || window.webkitAudioContext)()
     audioContextRef.current = audioContext
 
@@ -183,12 +191,17 @@ const NewTrack = ({ addTrack }) => {
         <div className="flex flex-col items-center space-y-4 border-b border-white pb-4 mb-4">
           <div className='min-h-40 flex items-center justify-center'>
             {isRecording && (<Oscilliscope stream={streamRef.current}/>)}
-            {(!isRecording && audioURL) && (<Waveform audioURL={audioURL} waveformCtrl={ctrl => { waveformRef.current = ctrl }} />)}
-            {(!isRecording && !audioURL) && (
+            {(!isRecording && audioURL && !error) && (<Waveform audioURL={audioURL} waveformCtrl={ctrl => { waveformRef.current = ctrl }} />)}
+            {(!isRecording && !audioURL  && !error) && (
               <div className='text-white'>
                 Waiting to record...
               </div>
             )}
+            {(error && (
+              <div className='text-white'>
+              Error processing track. Record something shorter.
+              </div>
+            ))}
           </div>
           <div className="flex space-x-4">
             <button
@@ -241,7 +254,7 @@ const NewTrack = ({ addTrack }) => {
             placeholder="Track title (required)"
             value={form.title}
             onChange={handleChange}
-            className="border border-white text-white bg-transparent rounded-lg px-4 py-2 w-100"
+            className="border border-white text-white bg-transparent rounded-lg px-4 py-2 w-80"
           />
           <input
             type="text"
@@ -249,7 +262,7 @@ const NewTrack = ({ addTrack }) => {
             placeholder="Your name"
             value={form.name}
             onChange={handleChange}
-            className="border border-white text-white bg-transparent rounded-lg px-4 py-2 w-100"
+            className="border border-white text-white bg-transparent rounded-lg px-4 py-2 w-80"
           />
           <input
             type="email"
@@ -257,7 +270,7 @@ const NewTrack = ({ addTrack }) => {
             placeholder="Email"
             value={form.email}
             onChange={handleChange}
-            className="border border-white text-white bg-transparent rounded-lg px-4 py-2 w-100"
+            className="border border-white text-white bg-transparent rounded-lg px-4 py-2 w-80"
           />
           <label className="flex items-center space-x-2 text-white">
             <input
