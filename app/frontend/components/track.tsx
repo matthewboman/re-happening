@@ -54,18 +54,6 @@ const Track: FC<Props> = ({
   const [ stop, setStop ]                     = useState(stopProp)
   const [ updated, setUpdated ]               = useState(false)
 
-  const regions  = RegionsPlugin.create()
-  const envelope = EnvelopePlugin.create({
-    volume:          0.8,
-    lineColor:       '#548fe8',
-    lineWidth:       '2',
-    dragPointSize:   6,
-    dragLine:        true,
-    dragPointFill:   '#548fe8',
-    dragPointStroke: '#548fe8',
-    points:          envProp,
-  })
-
   // Playback from parent
   useEffect(() => {
     setIsUsed(isUsedProp)
@@ -92,7 +80,7 @@ const Track: FC<Props> = ({
   }, [ audioFile ])
 
   // Update based on others: playing
-  // useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
+  useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
 
   // Update based on others: region loop
   // useEffect(() => {
@@ -108,25 +96,37 @@ const Track: FC<Props> = ({
   // }, [startProp, stopProp])
 
   // Update based on others: pitch, speen, envelope
-  // useEffect(() => {
-  //   // Remove the current instance
-  //   wavesurfer.current?.destroy()
+  useEffect(() => {
+    // Remove the current instance
+    wavesurfer.current?.destroy()
 
-  //   // Update state
-  //   setEnv(envProp)
-  //   setPreservePitch(pitchProp)
-  //   setSpeed(speedProp)
+    // Update state
+    setEnv(envProp)
+    setPreservePitch(pitchProp)
+    setSpeed(speedProp)
 
-  //   // Add to waveform
-  //   if (waveformRef.current) {
-  //     wavesurfer.current = create(waveformRef.current)
-  //     wavesurfer.current.setPlaybackRate(speedProp)
-  //     wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
-  //   }
-  // }, [envProp, pitchProp, speedProp])
+    // Add to waveform
+    if (waveformRef.current) {
+      wavesurfer.current = create(waveformRef.current)
+      wavesurfer.current.setPlaybackRate(speedProp)
+      wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
+    }
+  }, [envProp, pitchProp, speedProp])
 
   // Create Wavesurfer waveform
   const create = (waveformRef: HTMLElement) => {
+    const regions  = RegionsPlugin.create()
+    const envelope = EnvelopePlugin.create({
+      volume:          0.8,
+      lineColor:       '#548fe8',
+      lineWidth:       '2',
+      dragPointSize:   6,
+      dragLine:        true,
+      dragPointFill:   '#548fe8',
+      dragPointStroke: '#548fe8',
+      points:          envProp,
+    })
+
     let ws = WaveSurfer.create({
       container:     waveformRef,
       autoScroll:    false,
@@ -141,23 +141,16 @@ const Track: FC<Props> = ({
     })
 
     ws.on('ready', () => {
-      // debug('WaveSurfer ready')
-      // debug(`isReady: ${ws.isReady}`)
-      // debug(`backend: ${!!ws.backend}`)
-      // debug(`getAudioContext: ${typeof ws.backend?.getAudioContext}`)
-
       const ctx = ws.backend?.getAudioContext()
-      // debug(`AudioContext state: ${ctx?.state}`)
 
       if (ctx?.state === 'suspended') {
         ctx.resume().then(() => {
-          // debug('AudioContext resumed')
         })
       }
     })
 
 
-    ws.on('decode', () => {
+    ws.on('ready', () => {
       const region = regions.addRegion({
         start:  startProp,
         end:    stopProp,
@@ -171,7 +164,8 @@ const Track: FC<Props> = ({
 
     // Envelope updates
     envelope.on('points-change', (points) => {
-      setEnv(points)
+      const envelope = points.map(p => ({ time: p.time, volume: p.volume }))
+      setEnv(envelope)
     })
 
     // Region looping

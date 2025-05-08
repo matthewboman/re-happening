@@ -52,6 +52,10 @@ const About = () => (
         the compilation, you can contact me at xor [dot] music [at] proton [dot] com.
       </div>
       <div className="my-[2rem] text-xl">
+        This installation was created for the <a href="https://www.blackmountaincollege.org/" target="_blank" className="text-orange-300">Black Mountain College Museum's</a> (Re)HAPPENING
+        and made possible thanks to a grant by <a href="https://lamplightavl.org/" target="_blank" className="text-orange-300">LamplightAVL</a>.
+      </div>
+      <div className="my-[2rem] text-xl">
         This project is <a href="https://github.com/matthewboman/re-happening" target="_blank" className="text-orange-300">open source</a>.
         Contact me if you would like to set up your own installation.
       </div>

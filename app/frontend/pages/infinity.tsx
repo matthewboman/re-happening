@@ -50,14 +50,14 @@ export default function Infinity() {
   }, [tracks])
 
   // Handle data updates.
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     getNewTracks(),
-  //     getTrackUpdates()
-  //   }, 60000) // 60,000 ms = 1 minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // getNewTracks(),
+      getTrackUpdates()
+    }, 60000) // 60,000 ms = 1 minute
 
-  //   return () => clearInterval(interval) // cleanup on unmount
-  // }, [])
+    return () => clearInterval(interval) // cleanup on unmount
+  }, [])
 
   const today  = new Date()
   const after  = new Date('2025-05-04')
