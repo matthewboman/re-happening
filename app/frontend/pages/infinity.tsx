@@ -50,17 +50,17 @@ export default function Infinity() {
   }, [tracks])
 
   // Handle data updates.
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // getNewTracks(),
-      getTrackUpdates()
-    }, 60000) // 60,000 ms = 1 minute
+  // only implement this when users are adding tracks
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     getNewTracks(),
+  //   }, 60000) // 60,000 ms = 1 minute
 
-    return () => clearInterval(interval) // cleanup on unmount
-  }, [])
+  //   return () => clearInterval(interval) // cleanup on unmount
+  // }, [])
 
   const today  = new Date()
-  const after  = new Date('2025-05-04')
+  const after  = new Date('2025-05-04') // TODO: adjust when submissions have an end date
   const canAdd = today < after
 
   // Add track to top of the list.
@@ -79,53 +79,18 @@ export default function Infinity() {
       })
   }
 
-  // Gets the track data from the backend.
-  const getTrackUpdates = () => {
-    if (tracksRef.current.length === 0) return
-
-    axios.post('/api/update-track-data', { track_ids: tracksRef.current.map(t => t.id)})
-      .then(res => {
-        updateTracks(res.data.updated_tracks)
-      })
-  }
-
   // Plays all tracks selected as playing.
   const playAllActive = () => {
     setPlaying(!playing)
   }
 
-  // Update track data
-  const updateTracks = (updatedData) => {
-    const updateMap = new Map(
-      updatedData.map(track => [track.id, track])
-    )
-
-    setTracks(prevTracks =>
-      prevTracks.map(track => {
-        const updated = updateMap.get(track.id)
-        if (!updated) return track
-
-        return {
-          ...track,
-          is_playing:     updated.is_playing,
-          start:          updated.start,
-          stop:           updated.stop,
-          envelope:       updated.envelope,
-          pan:            updated.pan,
-          speed:          updated.speed,
-          preserve_pitch: updated.preserve_pitch
-        }
-      })
-    )
-  }
-
   // Update the position of tracks.
   const updatePositions = (arr) => {
-    const positions = arr.map(a => ({ id: a.i, position: a.y }))
-    axios.post('/api/update-track-order', { positions: positions })
-      .then(res => {
-        console.log(res)
-      })
+    // const positions = arr.map(a => ({ id: a.i, position: a.y }))
+    // axios.post('/api/update-track-order', { positions: positions })
+    //   .then(res => {
+    //     console.log(res)
+    //   })
   }
 
   return (
@@ -179,7 +144,8 @@ export default function Infinity() {
                       speedProp     = { t.speed || DEFAULT_SPEED }
                       startProp     = { t.start || DEFAULT_START }
                       stopProp      = { t.stop || DEFAULT_STOP }
-                      title         = { t.title || ''} />
+                      title         = { t.title || ''}
+                      updatedAtProp = { t.updated_at } />
                   </div>
                 </div>
               ))

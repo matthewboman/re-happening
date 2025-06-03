@@ -63,27 +63,27 @@ class ApiController < ApplicationController
 
     # POST - Returns updated track data to frontend for provided tracks.
     def update_track_data
-      track_ids = params[:track_ids]
-      tracks    = Track.where(id: track_ids)
-                       .as_json
+      track_id = params[:track_id]
+      track    = Track.find track_id
+                      .as_json
 
-      render json: { updated_tracks: tracks }
+      render json: { updated_track: track }
     end
 
     # POST - Updates the display order.
-    def update_track_order
-      values = params.require(:positions).map do |p|
-        "(#{p[:id].to_i}, #{p[:position].to_i})"
-      end.join(", ")
+    # def update_track_order
+    #   values = params.require(:positions).map do |p|
+    #     "(#{p[:id].to_i}, #{p[:position].to_i})"
+    #   end.join(", ")
 
-      sql = <<-SQL.squish
-        UPDATE tracks AS t SET position = v.position
-        FROM (VALUES #{values}) AS v(id, position)
-        WHERE t.id = v.id
-      SQL
+    #   sql = <<-SQL.squish
+    #     UPDATE tracks AS t SET position = v.position
+    #     FROM (VALUES #{values}) AS v(id, position)
+    #     WHERE t.id = v.id
+    #   SQL
 
-      ActiveRecord::Base.connection.execute(sql)
+    #   ActiveRecord::Base.connection.execute(sql)
 
-      head :ok
-    end
+    #   head :ok
+    # end
   end

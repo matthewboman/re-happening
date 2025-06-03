@@ -17,7 +17,8 @@ interface Props {
   speedProp:     number,
   startProp:     number,
   stopProp:      number,
-  title:         string
+  title:         string,
+  updatedAtProp: any // TODO
 }
 
 const Track: FC<Props> = ({
@@ -31,16 +32,15 @@ const Track: FC<Props> = ({
   speedProp,
   startProp,
   stopProp,
-  title
+  title,
+  updatedAtProp
 }) => {
   const waveformRef = useRef<HTMLDivElement | null>(null)
   const wavesurfer  = useRef<WaveSurfer | null>(null)
   let activeRegion  = useRef<any>(null)
   let audioContext  = useRef<any>(null)
+  let envelopeRef   = useRef<any>(null)
   let panNode       = useRef<any>(null)
-
-  // TEMP - iphone debugging
-  // const playPauseRef = useRef(null)
 
   const [ isPlaying, setIsPlaying ]           = useState(false) // Current playback state
   const [ isUsed, setIsUsed ]                 = useState(false) // Saves in DB whether selected to play
@@ -53,6 +53,7 @@ const Track: FC<Props> = ({
   const [ start, setStart ]                   = useState(startProp)
   const [ stop, setStop ]                     = useState(stopProp)
   const [ updated, setUpdated ]               = useState(false)
+  const [ updatedAt, setUpdatedAt ]           = useState(new Date(updatedAtProp))
 
   // Playback from parent
   useEffect(() => {
@@ -79,44 +80,20 @@ const Track: FC<Props> = ({
     }
   }, [ audioFile ])
 
-  // Update based on others: playing
-  useEffect(() => { setIsUsed(isUsedProp) }, [isUsedProp])
-
-  // Update based on others: region loop
-  // useEffect(() => {
-  //   setStart(startProp)
-  //   setStop(stopProp)
-
-  //   if (wavesurfer.current && activeRegion.current) {
-  //     activeRegion.current.setOptions({
-  //       start: startProp,
-  //       end:  stopProp
-  //     })
-  //   }
-  // }, [startProp, stopProp])
-
-  // Update based on others: pitch, speen, envelope
+  // Handle data updates.
   useEffect(() => {
-    // Remove the current instance
-    wavesurfer.current?.destroy()
+    const frequency = Math.floor(Math.random() * (30000 - 20000 + 1)) + 20000 // We don't want every API call happening at once
+    const interval  = setInterval(() => {
+      getTrackUpdates()
+    }, frequency)
 
-    // Update state
-    setEnv(envProp)
-    setPreservePitch(pitchProp)
-    setSpeed(speedProp)
-
-    // Add to waveform
-    if (waveformRef.current) {
-      wavesurfer.current = create(waveformRef.current)
-      wavesurfer.current.setPlaybackRate(speedProp)
-      wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), pitchProp)
-    }
-  }, [envProp, pitchProp, speedProp])
+    return () => clearInterval(interval) // cleanup on unmount
+  }, [])
 
   // Create Wavesurfer waveform
   const create = (waveformRef: HTMLElement) => {
     const regions  = RegionsPlugin.create()
-    const envelope = EnvelopePlugin.create({
+    envelopeRef.current = EnvelopePlugin.create({
       volume:          0.8,
       lineColor:       '#548fe8',
       lineWidth:       '2',
@@ -137,7 +114,7 @@ const Track: FC<Props> = ({
       audioRate:     1,
       url:           audioFile,
       backend:       'MediaElement',
-      plugins:       [ regions, envelope ]
+      plugins:       [ regions, envelopeRef.current ]
     })
 
     ws.on('ready', () => {
@@ -149,7 +126,7 @@ const Track: FC<Props> = ({
       }
     })
 
-
+    // Set up loop
     ws.on('ready', () => {
       const region = regions.addRegion({
         start:  startProp,
@@ -162,8 +139,13 @@ const Track: FC<Props> = ({
       activeRegion.current = region
     })
 
+    // Listen for stop events
+    ws.on('finish', () => {
+      setIsPlaying(false)
+    })
+
     // Envelope updates
-    envelope.on('points-change', (points) => {
+    envelopeRef.current.on('points-change', (points) => {
       const envelope = points.map(p => ({ time: p.time, volume: p.volume }))
       setEnv(envelope)
     })
@@ -181,25 +163,6 @@ const Track: FC<Props> = ({
       setStart(region.start)
       setStop(region.end)
     })
-
-    // TEMP - iphone debugging
-    // ws.on('ready', () => {
-    //   playPauseRef.current = async () => {
-    //     const ctx = wavesurfer.current?.backend?.getAudioContext()
-    //     debug(`AudioContext state: ${ctx?.state}`)
-
-    //     if (ctx?.state === 'suspended') {
-    //       await ctx.resume()
-    //       debug('AudioContext resumed')
-    //     }
-
-    //     const peaks = wavesurfer.current?.backend?.getPeaks?.()
-    //     debug(`Peaks: ${JSON.stringify(peaks)}`)
-
-    //     wavesurfer.current?.playPause()
-    //     debug('Toggled play/pause')
-    //   }
-    // })
 
     // Panning
     ws.on('ready', () => {
@@ -221,6 +184,17 @@ const Track: FC<Props> = ({
     })
 
     return ws
+  }
+
+  // Gets the track data from the backend.
+  const getTrackUpdates = () => {
+    axios.post('/api/update-track-data', { track_id: id })
+      .then(res => {
+        updateTrack(res.data.updated_track)
+      })
+      .catch(err => {
+        console.log(err)
+      })
   }
 
   // Converts hex colors to rgba
@@ -317,18 +291,68 @@ const Track: FC<Props> = ({
     if (media) media.playbackRate = speed
   }
 
+  // Updates the data of the track
+  const updateTrack = (updatedData) => {
+    const lastUpdate = new Date(updatedData.updated_at)
+
+    // Return if no changes
+    if (updatedAt <= lastUpdate) return
+
+    const media = wavesurfer.current?.backend?.media
+
+    // Update volume envelope
+    const envelope = updatedData.envelope ? updatedData.envelope : [
+      { time: 0, volume: 0.9 },
+      { time: 1, volume: 0.5 }
+    ]
+    setEnv(envelope)
+    envelopeRef.current.setPoints( envelope )
+
+    // Update loop start/stop
+    setStart(updatedData.start)
+    setStop(updatedData.stop)
+    activeRegion.current.setOptions({
+      start: updatedData.start,
+      end: updatedData.stop,
+    })
+
+    // Update pitch preserve
+    setPreservePitch(updatedData.preserve_pitch)
+    wavesurfer.current?.setPlaybackRate(wavesurfer.current?.getPlaybackRate(), updatedData.preserve_pitch)
+
+    if (media) {
+      media.preservesPitch = updatedData.preserve_pitch
+      media.mozPreservesPitch = updatedData.preserve_pitch
+      media.webkitPreservesPitch = updatedData.preserve_pitch
+    }
+
+    // Update speed
+    setSpeed(updatedData.speed)
+    wavesurfer.current?.setPlaybackRate(speed)
+    if (media) media.playbackRate = speed
+
+    // Update whether track is playing
+    const playingNow = updatedData.is_playing
+    setIsPlaying(playingNow)
+
+    if (playingNow) {
+      console.log('should play')
+      wavesurfer.current?.play()
+    } else {
+      console.log('stopping')
+      wavesurfer.current?.pause()
+    }
+
+    // Save last update time
+    setUpdatedAt(lastUpdate)
+  }
+
   // Changes the zoom of the waveform
   const updateZoom = (event) => {
     const minPxPerSec = event.target.valueAsNumber
 
     wavesurfer.current?.zoom(minPxPerSec)
   }
-
-  // TEMP - Debug on iPhone
-  // const debug = (msg) => {
-  //   const el = document.getElementById('debug')
-  //   if (el) el.textContent += `\ndebug: ${msg}`
-  // }
 
   return (
     <div>
