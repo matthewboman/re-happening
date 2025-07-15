@@ -25,6 +25,7 @@ const Navbar = () => {
             <a href="/how-to" className="">
               guide
             </a>
+            <span> | </span>
             <a href="/glowing-fest-2025" className="">
               glowing fest
             </a>
@@ -68,6 +69,9 @@ const Navbar = () => {
             <a href="/how-to" className="block">
               guide
             </a>
+            <div className='pe-4 my-4'>
+              <hr />
+            </div>
             <a href="/glowing-fest-2025" className="block">
               glowing fest
             </a>

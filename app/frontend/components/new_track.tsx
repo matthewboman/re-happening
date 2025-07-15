@@ -12,12 +12,13 @@ const FORM = {
 }
 
 const NewTrack = ({ addTrack, eventName }) => {
-  const [ audioURL, setAudioURL ]       = useState<string | null>(null)
-  const [ error, setError ]             = useState(false)
-  const [ isPlaying, setIsPlaying ]     = useState(false)
-  const [ isRecording, setIsRecording ] = useState(false)
-  const [ showForm, setShowForm ]       = useState(false)
-  const [ form, setForm ]               = useState(FORM)
+  const [ audioURL, setAudioURL ]         = useState<string | null>(null)
+  const [ error, setError ]               = useState(false)
+  const [ isPlaying, setIsPlaying ]       = useState(false)
+  const [ isProcessing, setIsProcessing ] = useState(false)
+  const [ isRecording, setIsRecording ]   = useState(false)
+  const [ showForm, setShowForm ]         = useState(false)
+  const [ form, setForm ]                 = useState(FORM)
 
   const audioContextRef = useRef(null)
   const audioRef        = useRef<HTMLAudioElement | null>(null)
@@ -175,6 +176,8 @@ const NewTrack = ({ addTrack, eventName }) => {
 
   // Handle recording stop
   const stopRecording = () => {
+    setIsProcessing(true)
+
     processorRef.current.disconnect()
     inputRef.current.disconnect()
     streamRef.current.getTracks().forEach((track) => track.stop())
@@ -185,6 +188,7 @@ const NewTrack = ({ addTrack, eventName }) => {
 
     setAudioURL(url)
     setIsRecording(false)
+    setIsProcessing(false)
   }
 
   return (
@@ -192,18 +196,28 @@ const NewTrack = ({ addTrack, eventName }) => {
       {!showForm && (
         <div className="flex flex-col items-center space-y-4 border-b border-white pb-4 mb-4">
           <div className='min-h-40 flex items-center justify-center'>
-            {isRecording && (<Oscilliscope stream={streamRef.current}/>)}
-            {(!isRecording && audioURL && !error) && (<Waveform audioURL={audioURL} waveformCtrl={ctrl => { waveformRef.current = ctrl }} />)}
-            {(!isRecording && !audioURL  && !error) && (
+            { isRecording &&
+              (<Oscilliscope stream={streamRef.current}/>)
+            }
+            { (!isRecording && audioURL && !error) &&
+              (<Waveform audioURL={audioURL} waveformCtrl={ctrl => { waveformRef.current = ctrl }} />)
+            }
+            { (!isRecording && !audioURL && !error) && (
               <div className='text-white'>
                 Waiting to record...
               </div>
             )}
-            {(error && (
+            { isProcessing && (
               <div className='text-white'>
-              Error processing track. Record something shorter.
+                Processing audio...
               </div>
-            ))}
+            )
+            }
+            { (error && (
+              <div className='text-white'>
+                Error processing track. Record something shorter.
+              </div>
+            )) }
           </div>
           <div className="flex space-x-4">
             <button

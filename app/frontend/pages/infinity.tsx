@@ -123,10 +123,11 @@ export default function Infinity({ eventName, lastDay }) {
         </div>
         <div className='mt-4'>
           <ResponsiveGridLayout
+            className = "my-8"
             layout = { {lg: tracks } }
             breakpoints = {{ lg: 0 }}
             cols   = { { lg: 1} }
-            rowHeight = { 240 }
+            rowHeight = { 260 }
             isBounded = { true }
             preventCollision = { false }
             margin = {[0,0]}
@@ -139,7 +140,7 @@ export default function Infinity({ eventName, lastDay }) {
           >
             {
               tracks.map(t => (
-                <div className='flex' key={t.id}>
+                <div className='flex pt-4' key={t.id}>
                   <div className='drag-handle border-4 border-gray-300 cursor-pointer my-6'></div>
                   <div className="pl-4 flex-1">
                     <Track

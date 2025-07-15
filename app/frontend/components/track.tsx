@@ -359,11 +359,24 @@ const Track: FC<Props> = ({
       <div className="overflow-hidden">
       {/* <div id="debug" style={{ whiteSpace: 'pre-wrap', fontSize: 10, color: 'white' }} className='text-teal'></div> */}
         <div className="mb-4">
+          <div className='text-white mb-4 ms-1'>{ title }</div>
           <div>
-            <span className='text-white me-2'>{ title }</span>
-            { isPlaying && (<button onClick={playPause} className="text-orange-500 border border-teal-orange rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">PAUSE</button>)}
-            { (!isPlaying && isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">SOLO</button>)}
-            { (!isPlaying && !isUsed) && (<button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">PLAY</button>)}
+            {
+              isPlaying && (
+              <button onClick={playPause} className="text-orange-500 border border-teal-orange rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">
+                PAUSE
+              </button>)
+            }
+            { (!isPlaying && isUsed) && (
+              <button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">
+                SOLO
+              </button>)
+            }
+            { (!isPlaying && !isUsed) && (
+              <button onClick={playPause} className="text-green-500 border border-green-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer">
+                PLAY
+              </button>)
+            }
             <button onClick={toggleControl} className="text-teal-500 border border-teal-500 rounded-lg w-16 px-1 py-1 text-xs mx-2 cursor-pointer" >
               EDIT
             </button>
