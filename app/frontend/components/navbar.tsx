@@ -25,8 +25,11 @@ const Navbar = () => {
             <a href="/how-to" className="">
               guide
             </a>
-            <a href="/about" className="">
-              about
+            <a href="/glowing-fest-2025" className="">
+              glowing fest
+            </a>
+            <a href="/rehappening-2025" className="">
+              rehappening 2025
             </a>
           </div>
 
@@ -65,8 +68,11 @@ const Navbar = () => {
             <a href="/how-to" className="block">
               guide
             </a>
-            <a href="/about" className="block">
-              about
+            <a href="/glowing-fest-2025" className="block">
+              glowing fest
+            </a>
+            <a href="/rehappening-2025" className="block">
+              rehappening 2025
             </a>
           </div>
         </div>

@@ -18,17 +18,19 @@ class ApiController < ApplicationController
       webm_path = Rails.root.join('public', 'tracks', filename)
       File.open(webm_path, 'wb') { |f| f.write(uploaded_file.read) }
 
-      track = Track.create title: params[:title],
-                          name:  params[:name],
-                          email: params[:email],
-                          url:   "/tracks/#{filename}"
+      track = Track.create title:      params[:title],
+                           name:       params[:name],
+                           email:      params[:email],
+                           url:        "/tracks/#{filename}",
+                           event_name: params[:event_name]
 
       render json: { track: track }, status: :created
     end
 
     # GET - Returns all tracks.
     def get_all_tracks
-      tracks = Track.select(:id, :title, :url, :is_playing, :position, :start, :stop, :speed, :preserve_pitch, :pan, :envelope, :updated_at)
+      tracks = Track.where(event_name: params[:event_name])
+                    .select(:id, :title, :url, :is_playing, :position, :start, :stop, :speed, :preserve_pitch, :pan, :envelope, :updated_at)
                     .order(:position)
                     .as_json
 
@@ -37,10 +39,9 @@ class ApiController < ApplicationController
 
     # POST - Returns new tracks since page load.
     def get_new_tracks
-      existing_ids = params[:existing_ids]
-      tracks       = Track.where
-                          .not(id: existing_ids)
-                          .as_json
+      tracks = Track.where(event_name: params[:event_name])
+                    .where.not(id: params[:existing_ids])
+                    .as_json
 
       render json: { new_tracks: tracks }
     end
@@ -63,9 +64,8 @@ class ApiController < ApplicationController
 
     # POST - Returns updated track data to frontend for provided tracks.
     def update_track_data
-      track_id = params[:track_id]
-      track    = Track.find track_id
-                      .as_json
+      track = Track.find(params[:track_id])
+                   .as_json
 
       render json: { updated_track: track }
     end

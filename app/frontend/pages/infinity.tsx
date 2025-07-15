@@ -32,14 +32,19 @@ const HEADERS = { headers: {
   'Content-Type': 'application/json',
 }}
 
-export default function Infinity() {
+interface Props {
+  eventName: string
+  lastDay:   Date
+}
+
+export default function Infinity({ eventName, lastDay }) {
   const [ playing, setPlaying ] = useState(false)
   const [ showNew, setShowNew ] = useState(false)
   const [ tracks, setTracks ]   = useState([])
   const tracksRef = useRef([])
 
   useEffect(() => {
-    axios.get('/api/get-all-tracks', HEADERS)
+    axios.get(`/api/get-all-tracks?event_name=${eventName}`, HEADERS)
       .then(res => {
         setTracks(res.data.tracks)
       })
@@ -60,8 +65,7 @@ export default function Infinity() {
   // }, [])
 
   const today  = new Date()
-  const after  = new Date('2025-05-04') // TODO: adjust when submissions have an end date
-  const canAdd = today < after
+  const canAdd = today < lastDay
 
   // Add track to top of the list.
   const addTrack = (track) => {
@@ -73,7 +77,12 @@ export default function Infinity() {
   const getNewTracks = () => {
     if (tracksRef.current.length === 0) return
 
-    axios.post('/api/get-new-tracks', { existing_ids: tracksRef.current.map(t => t.id)})
+    const params = {
+      existing_ids: tracksRef.current.map(t => t.id),
+      event_name:   eventName
+    }
+
+    axios.post('/api/get-new-tracks', params)
       .then(res => {
         setTracks([ ...res.data.new_tracks, ...tracksRef.current ])
       })
@@ -98,7 +107,7 @@ export default function Infinity() {
       <div className='p-4 md:p-[4rem] bg-slate-950'>
         {showNew && (
           <div className='mb-4 min-h-40'>
-            <NewTrack addTrack={addTrack}/>
+            <NewTrack addTrack={addTrack} eventName={eventName} />
           </div>
         )}
         <div className='mb-[2rem] flex space-x-4 items-center justify-center'>

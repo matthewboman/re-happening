@@ -11,7 +11,7 @@ const FORM = {
   participate:    false
 }
 
-const NewTrack = ({ addTrack }) => {
+const NewTrack = ({ addTrack, eventName }) => {
   const [ audioURL, setAudioURL ]       = useState<string | null>(null)
   const [ error, setError ]             = useState(false)
   const [ isPlaying, setIsPlaying ]     = useState(false)
@@ -127,6 +127,8 @@ const NewTrack = ({ addTrack }) => {
     Object.entries(form).forEach(([key, value]) => {
       data.append(key, value.toString())
     })
+
+    data.append('event_name', eventName)
 
     axios.post('/api/create-track', data)
       .then(res => {
