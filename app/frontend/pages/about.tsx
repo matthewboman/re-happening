@@ -17,8 +17,8 @@ const About = () => (
       </div>
       <div className="my-[2rem] text-xl">
         <i>concrète radio</i> is a participatory installation that facilitates a shared
-        listening experience.  During the (Re)HAPPENING, it is also a shared
-        creating experience. Attendees can record their own track and mix/remix
+        listening experience. During each installation, it is also a shared
+        creating experience. Anyone can record their own track and mix/remix
         it with others. The song can be music, field recordings, spoken word,
         or whatever piques one's fancy throughout the day.
       </div>
@@ -41,18 +41,12 @@ const About = () => (
         dream of wider connection outside space and time on which the internet was built.
       </div>
       <div className="my-[2rem] text-xl">
-        After the day of the (Re)HAPPENING, people will no longer be able to upload
+        After each installation ends, people will no longer be able to upload
         new tracks. However, the archive of the day's recordings will remain, and
         users will still be able to rework the recordings.
       </div>
       <div className="my-[2rem] text-xl">
-        I also plan to release a compilation album. Artists from the wider
-        community are welcome to create songs using only the content recorded over
-        the course of the (Re)HAPPENING. If you are interested in participating in
-        the compilation, you can contact me at xor [dot] music [at] proton [dot] com.
-      </div>
-      <div className="my-[2rem] text-xl">
-        This installation was created for the <a href="https://www.blackmountaincollege.org/" target="_blank" className="text-orange-300">Black Mountain College Museum's</a> (Re)HAPPENING
+        This installation was initially created for the <a href="https://www.blackmountaincollege.org/" target="_blank" className="text-orange-300">Black Mountain College Museum's</a> (Re)HAPPENING
         and made possible thanks to a grant by <a href="https://lamplightavl.org/" target="_blank" className="text-orange-300">LamplightAVL</a>.
       </div>
       <div className="my-[2rem] text-xl">
